@@ -382,8 +382,13 @@ const listeningMarker =
     .slice(2);
 
 export function listenToAllSupportedEvents(rootContainerElement: EventTarget) {
+  // 判断监听的标志位
   if (!(rootContainerElement: any)[listeningMarker]) {
     (rootContainerElement: any)[listeningMarker] = true;
+    // 将全部的react支持的事件类型做绑定
+    // selectionchange特殊处理 将他绑定在document上
+    // 然后其实就是调的listenToNativeEvent这个方法 暂时不深入了.. 
+    // TODO 深入react事件原理从listenToNativeEvent方法进入
     allNativeEvents.forEach(domEventName => {
       // We handle selectionchange separately because it
       // doesn't bubble and needs to be on the document.

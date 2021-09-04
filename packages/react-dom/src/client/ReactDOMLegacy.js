@@ -108,6 +108,7 @@ function legacyCreateRootFromDOMContainer(
   forceHydrate: boolean,
 ): FiberRoot {
   // First clear any existing content.
+  // 移除container里面的全部child 初始化的时候
   if (!forceHydrate) {
     let rootSibling;
     while ((rootSibling = container.lastChild)) {
@@ -115,6 +116,8 @@ function legacyCreateRootFromDOMContainer(
     }
   }
 
+  // 创建根节点的FiberNode new FiberRootNode来的
+  // createContainer -> createFiberRoot -> FiberRootNode
   const root = createContainer(
     container,
     LegacyRoot,
@@ -123,10 +126,15 @@ function legacyCreateRootFromDOMContainer(
     false, // isStrictMode
     false, // concurrentUpdatesByDefaultOverride,
   );
+  // root.current就是FiberNode的根结点，也就是currentFiber树
+  // 后续都会替换这个指针来实现workInProgressFiber树和currentFiber树的切换
+  // markContainerAsRoot就是在container上挂载个属性指向root.current而已
   markContainerAsRoot(root.current, container);
 
   const rootContainerElement =
+    // 防止加了注释 好垃圾的html
     container.nodeType === COMMENT_NODE ? container.parentNode : container;
+  // 做事件绑定的事情 -> 这里就涉及了react的合成事件的原理
   listenToAllSupportedEvents(rootContainerElement);
 
   return root;
@@ -159,12 +167,15 @@ function legacyRenderSubtreeIntoContainer(
 
   let root = container._reactRootContainer;
   let fiberRoot: FiberRoot;
-  if (!root) {
+  if (!root) { // mount阶段
     // Initial mount
+    // root就是FiberRootNode
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
       forceHydrate,
     );
+    // fiberRoot就是FiberRootNode
+    // 然后FiberRootNode.current就指向currentFiber树
     fiberRoot = root;
     if (typeof callback === 'function') {
       const originalCallback = callback;
@@ -177,7 +188,7 @@ function legacyRenderSubtreeIntoContainer(
     flushSyncWithoutWarningIfAlreadyRendering(() => {
       updateContainer(children, fiberRoot, parentComponent, callback);
     });
-  } else {
+  } else { // 更新阶段
     fiberRoot = root;
     if (typeof callback === 'function') {
       const originalCallback = callback;
