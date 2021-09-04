@@ -1012,9 +1012,12 @@ function performSyncWorkOnRoot(root) {
 
   // We now have a consistent tree. Because this is a sync render, we
   // will commit it even if something suspended.
+  // 在这里完成了beginWork 和 completeWork的循环构建workInProgressFiber树的过程
+  // finishedWork就是构建好的orkInProgressFiber树
   const finishedWork: Fiber = (root.current.alternate: any);
   root.finishedWork = finishedWork;
   root.finishedLanes = lanes;
+  // 开始进入commit阶段了
   commitRoot(root);
 
   // Before exiting, make sure there's a callback scheduled for the next
